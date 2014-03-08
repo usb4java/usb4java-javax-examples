@@ -24,6 +24,10 @@ import org.usb4java.javax.examples.adb.OpenMessage;
  * $HOME/.android/. You also must make sure the ADB daemon is not running
  * because it blocks the USB device.
  * 
+ * TODO Currently this demo only works with a specific device because
+ * Vendor ID, Product ID, Configuration number, Interface number and the
+ * endpoint addresses are hardcoded.
+ * 
  * @author Klaus Reimer (k@ailis.de)
  */
 public class AdbDemo
