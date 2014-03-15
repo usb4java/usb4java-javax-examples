@@ -10,7 +10,7 @@ package org.usb4java.javax.examples.adb;
  * 
  * @author Klaus Reimer (k@ailis.de)
  */
-public final class InvalidMessageException extends RuntimeException
+public class InvalidMessageException extends RuntimeException
 {
     /**
      * Constructor.

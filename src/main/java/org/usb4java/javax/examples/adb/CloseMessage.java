@@ -11,7 +11,7 @@ package org.usb4java.javax.examples.adb;
  * 
  * @author Klaus Reimer (k@ailis.de)
  */
-public final class CloseMessage extends Message
+public class CloseMessage extends Message
 {
     /**
      * Constructs a new CLOSE message.
@@ -21,7 +21,7 @@ public final class CloseMessage extends Message
      * @param data
      *            The ADB message data.
      */
-    public CloseMessage(final MessageHeader header, final byte[] data)
+    public CloseMessage(MessageHeader header, byte[] data)
     {
         super(header, data);
     }
@@ -34,7 +34,7 @@ public final class CloseMessage extends Message
      * @param remoteId
      *            The remote ID.
      */
-    public CloseMessage(final int localId, final int remoteId)
+    public CloseMessage(int localId, int remoteId)
     {
         super(MessageHeader.CMD_CLSE, localId, remoteId, new byte[0]);
     }

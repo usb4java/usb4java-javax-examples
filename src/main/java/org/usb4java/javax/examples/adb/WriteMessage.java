@@ -14,7 +14,7 @@ import javax.xml.bind.DatatypeConverter;
  * 
  * @author Klaus Reimer (k@ailis.de)
  */
-public final class WriteMessage extends Message
+public class WriteMessage extends Message
 {
     /**
      * Constructs a new WRITE message.
@@ -24,7 +24,7 @@ public final class WriteMessage extends Message
      * @param data
      *            The ADB message data.
      */
-    public WriteMessage(final MessageHeader header, final byte[] data)
+    public WriteMessage(MessageHeader header, byte[] data)
     {
         super(header, data);
     }
@@ -37,7 +37,7 @@ public final class WriteMessage extends Message
      * @param data
      *            The destination.
      */
-    public WriteMessage(final int remoteId, final byte[] data)
+    public WriteMessage(int remoteId, byte[] data)
     {
         super(MessageHeader.CMD_WRTE, remoteId, 0, data);
     }
@@ -50,7 +50,7 @@ public final class WriteMessage extends Message
      * @param data
      *            The data.
      */
-    public WriteMessage(final int remoteId, final String data)
+    public WriteMessage(int remoteId, String data)
     {
         this(remoteId, (data + '\0').getBytes(Charset.forName("UTF-8")));
     }

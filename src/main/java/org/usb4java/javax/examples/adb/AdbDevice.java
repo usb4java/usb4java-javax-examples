@@ -5,8 +5,6 @@
 
 package org.usb4java.javax.examples.adb;
 
-import javax.usb.UsbConfiguration;
-import javax.usb.UsbDevice;
 import javax.usb.UsbEndpoint;
 import javax.usb.UsbException;
 import javax.usb.UsbInterface;
@@ -17,69 +15,58 @@ import javax.usb.UsbPipe;
  * 
  * @author Klaus Reimer (k@ailis.de)
  */
-public final class Device
+public class AdbDevice
 {
-    /** The USB device. Never null. */
-    private final UsbDevice usbDevice;
+    /** The claimed USB ADB interface. */
+    private final UsbInterface iface;
 
-    /** The claimed USB ADB interface. Null if not claimed. */
-    private UsbInterface iface;
+    /** The in endpoint address. */
+    private final byte inEndpoint;
+
+    /** The out endpoint address. */
+    private final byte outEndpoint;
 
     /**
-     * Constructs a new ADB device.
+     * Constructs a new ADB interface.
      * 
-     * @param usbDevice
-     *            The USB device. Must not be null.
+     * @param iface
+     *            The USB interface. Must not be null.
+     * @param inEndpoint
+     *            The in endpoint address.
+     * @param outEndpoint
+     *            THe out endpoint address.
      */
-    public Device(final UsbDevice usbDevice)
+    public AdbDevice(UsbInterface iface, byte inEndpoint,
+        byte outEndpoint)
     {
-        if (usbDevice == null)
-            throw new IllegalArgumentException("device must be set");
-        this.usbDevice = usbDevice;
+        if (iface == null)
+            throw new IllegalArgumentException("iface must be set");
+        this.iface = iface;
+        this.inEndpoint = inEndpoint;
+        this.outEndpoint = outEndpoint;
     }
 
     /**
-     * Opens the ADB device. This claims the USB interface for ADB
-     * communication. When you are finished communicating with the device then
-     * you must call the {@link #close()} method.
+     * Opens the ADB device. When you are finished communicating with the device
+     * then you should call the {@link #close()} method.
      * 
      * @throws UsbException
-     *             When USB communication failed.
+     *             When device could not be opened.
      */
     public void open() throws UsbException
     {
-        if (this.iface != null)
-            throw new IllegalStateException("ADB device already open");
-        final UsbConfiguration config =
-            this.usbDevice.getUsbConfiguration((byte) 1);
-        final UsbInterface iface = config.getUsbInterface((byte) 1);
-        iface.claim();
-        this.iface = iface;
+        this.iface.claim();
     }
 
     /**
-     * Returns the claimed ADB interface.
-     * 
-     * @return The claimed ADB interface. Never null.
-     */
-    private UsbInterface getInterface()
-    {
-        if (this.iface == null)
-            throw new IllegalStateException("ADB device not open");
-        return this.iface;
-    }
-
-    /**
-     * Closes the ADB device. This releases the USB interface.
+     * Closes the ADB device.
      * 
      * @throws UsbException
-     *             When USB communication failed.
+     *             When device could not be closed.
      */
     public void close() throws UsbException
     {
-        final UsbInterface iface = getInterface();
-        iface.release();
-        this.iface = null;
+        this.iface.release();
     }
 
     /**
@@ -90,12 +77,12 @@ public final class Device
      * @throws UsbException
      *             When USB communication failed.
      */
-    public void sendMessage(final Message message) throws UsbException
+    public void sendMessage(Message message) throws UsbException
     {
-        final UsbInterface iface = getInterface();
-        final UsbEndpoint outEndpoint = iface.getUsbEndpoint((byte) 0x03);
-        final UsbPipe outPipe = outEndpoint.getUsbPipe();
-        final MessageHeader header = message.getHeader();
+        UsbEndpoint outEndpoint =
+            this.iface.getUsbEndpoint(this.outEndpoint);
+        UsbPipe outPipe = outEndpoint.getUsbPipe();
+        MessageHeader header = message.getHeader();
         outPipe.open();
         try
         {
@@ -124,9 +111,9 @@ public final class Device
      */
     public Message receiveMessage() throws UsbException
     {
-        final UsbInterface iface = getInterface();
-        final UsbEndpoint inEndpoint = iface.getUsbEndpoint((byte) 0x83);
-        final UsbPipe inPipe = inEndpoint.getUsbPipe();
+        UsbEndpoint inEndpoint =
+            this.iface.getUsbEndpoint(this.inEndpoint);
+        UsbPipe inPipe = inEndpoint.getUsbPipe();
         inPipe.open();
         try
         {
@@ -145,7 +132,7 @@ public final class Device
                 throw new InvalidMessageException(
                     "ADB message data size mismatch. Should be "
                         + header.getDataLength() + " but is " + received);
-            final Message message = Message.create(header, data);
+            Message message = Message.create(header, data);
             if (!message.isValid())
                 throw new InvalidMessageException(
                     "ADB message data checksum failure");

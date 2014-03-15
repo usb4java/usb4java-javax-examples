@@ -31,8 +31,7 @@ public abstract class Message
      * @param data
      *            The data payload.
      */
-    protected Message(final int command, final int arg0,
-        final int arg1, final byte[] data)
+    protected Message(int command, int arg0, int arg1, byte[] data)
     {
         this.data = data;
         int checksum = 0;
@@ -50,7 +49,7 @@ public abstract class Message
      * @param data
      *            The ADB message data.
      */
-    public Message(final MessageHeader header, final byte[] data)
+    public Message(MessageHeader header, byte[] data)
     {
         this.header = header;
         this.data = data;
@@ -61,7 +60,7 @@ public abstract class Message
      * 
      * @return The message header.
      */
-    public final MessageHeader getHeader()
+    public MessageHeader getHeader()
     {
         return this.header;
     }
@@ -71,7 +70,7 @@ public abstract class Message
      * 
      * @return The payload data.
      */
-    public final byte[] getData()
+    public byte[] getData()
     {
         return this.data;
     }
@@ -100,10 +99,9 @@ public abstract class Message
      *            The ADB message data.
      * @return The parsed ADB message.
      */
-    public static Message create(final MessageHeader header,
-        final byte[] data)
+    public static Message create(MessageHeader header, byte[] data)
     {
-        final int command = header.getCommand();
+        int command = header.getCommand();
         switch (command)
         {
             case MessageHeader.CMD_CNXN:

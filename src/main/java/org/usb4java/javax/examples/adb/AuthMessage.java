@@ -12,7 +12,7 @@ import javax.xml.bind.DatatypeConverter;
  * 
  * @author Klaus Reimer (k@ailis.de)
  */
-public final class AuthMessage extends Message
+public class AuthMessage extends Message
 {
     /** The auth message transmits a authentification token. */
     public static final int TYPE_TOKEN = 1;
@@ -31,7 +31,7 @@ public final class AuthMessage extends Message
      * @param data
      *            The ADB message data.
      */
-    public AuthMessage(final MessageHeader header, final byte[] data)
+    public AuthMessage(MessageHeader header, byte[] data)
     {
         super(header, data);
     }
@@ -47,7 +47,7 @@ public final class AuthMessage extends Message
      *            token, a signature or a public key. Depends on the auth
      *            message type.
      */
-    public AuthMessage(final int type, final byte[] data)
+    public AuthMessage(int type, byte[] data)
     {
         super(MessageHeader.CMD_AUTH, type, 0, data);
     }

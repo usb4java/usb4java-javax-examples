@@ -12,22 +12,22 @@ import java.nio.charset.Charset;
  * 
  * @author Klaus Reimer (k@ailis.de)
  */
-public final class ConnectMessage extends Message
+public class ConnectMessage extends Message
 {
     /** Constant for default protocol version. */
-    public static int DEFAULT_PROTOCOL_VERSION = 0x01000000;
+    public static final int DEFAULT_PROTOCOL_VERSION = 0x01000000;
 
     /** Constant for default maximum message body size. */
-    public static int DEFAULT_MAX_DATA = 4096;
+    public static final int DEFAULT_MAX_DATA = 4096;
 
     /** Constant for system type "bootloader". */
-    public static String SYSTEM_TYPE_BOOTLOADER = "bootloader";
+    public static final String SYSTEM_TYPE_BOOTLOADER = "bootloader";
 
     /** Constant for system type "device". */
-    public static String SYSTEM_TYPE_DEVICE = "device";
+    public static final String SYSTEM_TYPE_DEVICE = "device";
 
     /** Constant for system type "host". */
-    public static String SYSTEM_TYPE_HOST = "host";
+    public static final String SYSTEM_TYPE_HOST = "host";
 
     /**
      * Constructs a new connect message.
@@ -37,7 +37,7 @@ public final class ConnectMessage extends Message
      * @param data
      *            The ADB message data.
      */
-    public ConnectMessage(final MessageHeader header, final byte[] data)
+    public ConnectMessage(MessageHeader header, byte[] data)
     {
         super(header, data);
     }
@@ -58,9 +58,8 @@ public final class ConnectMessage extends Message
      * @param banner
      *            The banner. A human-readable version or identifier string.
      */
-    public ConnectMessage(final int version, final int maxData,
-        final String systemType, final String serialNo,
-        final String banner)
+    public ConnectMessage(int version, int maxData, String systemType, 
+        String serialNo, String banner)
     {
         this(version, maxData, buildIdentity(systemType, serialNo, banner));
     }
@@ -75,8 +74,7 @@ public final class ConnectMessage extends Message
      * @param identity
      *            The identity as a UTF-8 encoded character array.
      */
-    public ConnectMessage(final int version, final int maxData,
-        final byte[] identity)
+    public ConnectMessage(int version, int maxData, byte[] identity)
     {
         super(MessageHeader.CMD_CNXN, version, maxData, identity);
     }
@@ -93,9 +91,7 @@ public final class ConnectMessage extends Message
      * @param banner
      *            The banner. A human-readable version or identifier string.
      */
-    public ConnectMessage(final String systemType,
-        final String serialNo,
-        final String banner)
+    public ConnectMessage(String systemType, String serialNo, String banner)
     {
         this(DEFAULT_PROTOCOL_VERSION, DEFAULT_MAX_DATA, systemType, serialNo,
             banner);
@@ -112,8 +108,8 @@ public final class ConnectMessage extends Message
      *            The banner. A human-readable version or identifier string.
      * @return The identity payload.
      */
-    private static byte[] buildIdentity(final String systemType,
-        final String serialNo, final String banner)
+    private static byte[] buildIdentity(String systemType, String serialNo, 
+        String banner)
     {
         if (systemType == null)
             throw new IllegalArgumentException("systemType must be set");

@@ -11,7 +11,7 @@ package org.usb4java.javax.examples.adb;
  * 
  * @author Klaus Reimer (k@ailis.de)
  */
-public final class OkayMessage extends Message
+public class OkayMessage extends Message
 {
     /**
      * Constructs a new OKAY message.
@@ -21,7 +21,7 @@ public final class OkayMessage extends Message
      * @param data
      *            The ADB message data.
      */
-    public OkayMessage(final MessageHeader header, final byte[] data)
+    public OkayMessage(MessageHeader header, byte[] data)
     {
         super(header, data);
     }
@@ -34,7 +34,7 @@ public final class OkayMessage extends Message
      * @param remoteId
      *            The remote ID.
      */
-    public OkayMessage(final int remoteId, final int localId)
+    public OkayMessage(int remoteId, int localId)
     {
         super(MessageHeader.CMD_OKAY, remoteId, localId, new byte[0]);
     }

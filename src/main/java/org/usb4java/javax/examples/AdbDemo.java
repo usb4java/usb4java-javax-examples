@@ -11,7 +11,7 @@ import org.usb4java.javax.examples.adb.Adb;
 import org.usb4java.javax.examples.adb.AuthMessage;
 import org.usb4java.javax.examples.adb.CloseMessage;
 import org.usb4java.javax.examples.adb.ConnectMessage;
-import org.usb4java.javax.examples.adb.Device;
+import org.usb4java.javax.examples.adb.AdbDevice;
 import org.usb4java.javax.examples.adb.Message;
 import org.usb4java.javax.examples.adb.OkayMessage;
 import org.usb4java.javax.examples.adb.OpenMessage;
@@ -23,10 +23,6 @@ import org.usb4java.javax.examples.adb.OpenMessage;
  * it uses the key pair which the real ADB tool already placed in 
  * $HOME/.android/. You also must make sure the ADB daemon is not running
  * because it blocks the USB device.
- * 
- * TODO Currently this demo only works with a specific device because
- * Vendor ID, Product ID, Configuration number, Interface number and the
- * endpoint addresses are hardcoded.
  * 
  * @author Klaus Reimer (k@ailis.de)
  */
@@ -40,17 +36,17 @@ public class AdbDemo
      * @throws Exception
      *             When something goes wrong.
      */
-    public static void main(final String[] args) throws Exception
+    public static void main(String[] args) throws Exception
     {
         // Find a ADB device to communicate with.
-        List<Device> devices = Adb.findDevices();
+        List<AdbDevice> devices = Adb.findDevices();
         if (devices.isEmpty())
         {
             System.err.println("No ADB devices found");
             System.exit(1);
             return;
         }
-        final Device device = devices.get(0);
+        AdbDevice device = devices.get(0);
 
         // Do some ADB communication
         device.open();
@@ -80,7 +76,7 @@ public class AdbDemo
                 // Process auth message
                 else if (message instanceof AuthMessage)
                 {
-                    final AuthMessage authMessage = (AuthMessage) message;
+                    AuthMessage authMessage = (AuthMessage) message;
 
                     // Sign token if we didn't tried it already
                     if (!triedAuthentication)

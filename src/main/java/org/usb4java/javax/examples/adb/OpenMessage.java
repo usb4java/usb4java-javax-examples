@@ -12,7 +12,7 @@ import java.nio.charset.Charset;
  * 
  * @author Klaus Reimer (k@ailis.de)
  */
-public final class OpenMessage extends Message
+public class OpenMessage extends Message
 {
     /**
      * Constructs a new OPEN message.
@@ -22,7 +22,7 @@ public final class OpenMessage extends Message
      * @param data
      *            The ADB message data.
      */
-    public OpenMessage(final MessageHeader header, final byte[] data)
+    public OpenMessage(MessageHeader header, byte[] data)
     {
         super(header, data);
     }
@@ -35,7 +35,7 @@ public final class OpenMessage extends Message
      * @param destination
      *            The destination.
      */
-    public OpenMessage(final int localId, final byte[] destination)
+    public OpenMessage(int localId, byte[] destination)
     {
         super(MessageHeader.CMD_OPEN, localId, 0, destination);
     }
@@ -48,7 +48,7 @@ public final class OpenMessage extends Message
      * @param destination
      *            The destination.
      */
-    public OpenMessage(final int localId, final String destination)
+    public OpenMessage(int localId, String destination)
     {
         this(localId, (destination + '\0').getBytes(Charset.forName("UTF-8")));
     }

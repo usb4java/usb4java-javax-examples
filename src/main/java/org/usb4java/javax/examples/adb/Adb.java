@@ -20,11 +20,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.crypto.Cipher;
+import javax.usb.UsbConfiguration;
+import javax.usb.UsbConst;
 import javax.usb.UsbDevice;
 import javax.usb.UsbDeviceDescriptor;
+import javax.usb.UsbEndpoint;
+import javax.usb.UsbEndpointDescriptor;
 import javax.usb.UsbException;
 import javax.usb.UsbHostManager;
 import javax.usb.UsbHub;
+import javax.usb.UsbInterface;
+import javax.usb.UsbInterfaceDescriptor;
 import javax.usb.UsbServices;
 import javax.xml.bind.DatatypeConverter;
 
@@ -35,11 +41,14 @@ import javax.xml.bind.DatatypeConverter;
  */
 public class Adb
 {
-    /** The vendor ID of ADB devices. */
-    private static final int VENDOR_ID = 0x04e8;
+    /** Constant for ADB class. */
+    private static final byte ADB_CLASS = (byte) 0xff;
 
-    /** The product ID of ADB devices. */
-    private static final int PRODUCT_ID = 0x6860;
+    /** Constant for ADB sub class. */
+    private static final byte ADB_SUBCLASS = 0x42;
+
+    /** Constant for ADB protocol. */
+    private static final byte ADB_PROTOCOL = 1;
 
     /** Header for token signing. */
     private static byte[] headerOID = new byte[] {
@@ -48,16 +57,16 @@ public class Adb
     };
 
     /**
-     * Returns the list of all available Android devices.
+     * Returns the list of all available ADB devices.
      * 
-     * @return The list of available Android devices.
+     * @return The list of available ADB devices.
      * @throws UsbException
      *             When USB communication failed.
      */
-    public static List<Device> findDevices() throws UsbException
+    public static List<AdbDevice> findDevices() throws UsbException
     {
         UsbServices services = UsbHostManager.getUsbServices();
-        List<Device> usbDevices = new ArrayList<Device>();
+        List<AdbDevice> usbDevices = new ArrayList<AdbDevice>();
         findDevices(services.getRootUsbHub(), usbDevices);
         return usbDevices;
     }
@@ -71,20 +80,113 @@ public class Adb
      * @param devices
      *            The list where to add found devices.
      */
-    private static void findDevices(UsbHub hub, List<Device> devices)
+    private static void findDevices(UsbHub hub, List<AdbDevice> devices)
     {
         for (UsbDevice usbDevice: (List<UsbDevice>) hub.getAttachedUsbDevices())
         {
-            UsbDeviceDescriptor desc = usbDevice.getUsbDeviceDescriptor();
-            if (desc.idVendor() == VENDOR_ID && desc.idProduct() == PRODUCT_ID)
-            {
-                devices.add(new Device(usbDevice));
-            }
             if (usbDevice.isUsbHub())
             {
                 findDevices((UsbHub) usbDevice, devices);
             }
+            else
+            {
+                checkDevice(usbDevice, devices);
+            }
         }
+    }
+
+    /**
+     * Checks if the specified USB device is a ADB device and adds it to the
+     * list if it is.
+     * 
+     * @param usbDevice
+     *            The USB device to check.
+     * @param adbDevices
+     *            The list of ADB devices to add the USB device to when it is an
+     *            ADB device.
+     */
+    private static void checkDevice(UsbDevice usbDevice,
+        List<AdbDevice> adbDevices)
+    {
+        UsbDeviceDescriptor deviceDesc = usbDevice.getUsbDeviceDescriptor();
+
+        // Ignore devices from Non-ADB vendors
+        if (!isAdbVendor(deviceDesc.idVendor())) return;
+
+        // Check interfaces of device
+        UsbConfiguration config = usbDevice.getActiveUsbConfiguration();
+        for (UsbInterface iface: (List<UsbInterface>) config.getUsbInterfaces())
+        {
+            List<UsbEndpoint> endpoints = iface.getUsbEndpoints();
+
+            // Ignore interface if it does not have two endpoints
+            if (endpoints.size() != 2) continue;
+
+            // Ignore interface if it does not match the ADB specs
+            if (!isAdbInterface(iface)) continue;
+
+            UsbEndpointDescriptor ed1 =
+                endpoints.get(0).getUsbEndpointDescriptor();
+            UsbEndpointDescriptor ed2 =
+                endpoints.get(1).getUsbEndpointDescriptor();
+
+            // Ignore interface if endpoints are not bulk endpoints
+            if (((ed1.bmAttributes() & UsbConst.ENDPOINT_TYPE_BULK) == 0) ||
+                ((ed2.bmAttributes() & UsbConst.ENDPOINT_TYPE_BULK) == 0))
+                continue;
+            
+            // Determine which endpoint is in and which is out
+            byte a1 = ed1.bEndpointAddress();
+            byte a2 = ed2.bEndpointAddress();
+            byte in, out;
+            if (((a1 & UsbConst.ENDPOINT_DIRECTION_IN) != 0) &&
+                ((a2 & UsbConst.ENDPOINT_DIRECTION_IN) == 0))
+            {
+                in = a1;
+                out = a2;
+            }
+            else if (((a2 & UsbConst.ENDPOINT_DIRECTION_IN) != 0) &&
+                ((a1 & UsbConst.ENDPOINT_DIRECTION_IN) == 0))
+            {
+                out = a1;
+                in = a2;
+            }
+            else continue;
+                
+            
+            // Create ADB device and add it to the list
+            AdbDevice adbDevice = new AdbDevice(iface, in, out);
+            adbDevices.add(adbDevice);
+        }
+    }
+
+    /**
+     * Checks if the specified vendor is an ADB device vendor.
+     * 
+     * @param vendorId
+     *            The vendor ID to check.
+     * @return True if ADB device vendor, false if not.
+     */
+    private static boolean isAdbVendor(short vendorId)
+    {
+        for (short adbVendorId: Vendors.VENDOR_IDS)
+            if (adbVendorId == vendorId) return true;
+        return false;
+    }
+
+    /**
+     * Checks if the specified USB interface is an ADB interface.
+     * 
+     * @param iface
+     *            The interface to check.
+     * @return True if interface is an ADB interface, false if not.
+     */
+    private static boolean isAdbInterface(UsbInterface iface)
+    {
+        UsbInterfaceDescriptor desc = iface.getUsbInterfaceDescriptor();
+        return desc.bInterfaceClass() == ADB_CLASS &&
+            desc.bInterfaceSubClass() == ADB_SUBCLASS &&
+            desc.bInterfaceProtocol() == ADB_PROTOCOL;
     }
 
     /**
@@ -99,22 +201,22 @@ public class Adb
     public static RSAPrivateKey getPrivateKey() throws IOException,
         GeneralSecurityException
     {
-        final File file =
+        File file =
             new File(System.getProperty("user.home"), ".android/adbkey");
-        final BufferedReader reader = new BufferedReader(new FileReader(file));
+        BufferedReader reader = new BufferedReader(new FileReader(file));
         try
         {
-            final StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             String line = reader.readLine();
             while (line != null)
             {
                 if (!line.startsWith("----")) builder.append(line);
                 line = reader.readLine();
             }
-            final byte[] bytes =
+            byte[] bytes =
                 DatatypeConverter.parseBase64Binary(builder.toString());
-            final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            final PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(bytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(bytes);
             return (RSAPrivateKey) keyFactory.generatePrivate(ks);
         }
         finally
@@ -132,11 +234,11 @@ public class Adb
      */
     public static byte[] getPublicKey() throws IOException
     {
-        final File file =
+        File file =
             new File(System.getProperty("user.home"), ".android/adbkey.pub");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final InputStream in = new FileInputStream(file);
-        final byte[] buffer = new byte[8192];
+        InputStream in = new FileInputStream(file);
+        byte[] buffer = new byte[8192];
         int read;
         while ((read = in.read(buffer)) != -1)
         {
@@ -163,10 +265,10 @@ public class Adb
     public static byte[] signToken(byte[] token) throws IOException,
         GeneralSecurityException
     {
-        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
         stream.write(headerOID);
         stream.write(token);
-        final Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.ENCRYPT_MODE, getPrivateKey());
         return cipher.doFinal(stream.toByteArray());
     }

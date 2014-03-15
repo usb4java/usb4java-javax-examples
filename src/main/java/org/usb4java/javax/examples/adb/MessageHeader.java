@@ -13,7 +13,7 @@ import java.nio.ByteOrder;
  * 
  * @author Klaus Reimer (k@ailis.de)
  */
-public final class MessageHeader
+public class MessageHeader
 {
     /** Command for SYNC message. */
     public static final int CMD_SYNC = 0x434e5953;
@@ -76,9 +76,8 @@ public final class MessageHeader
      *            The inverted command. Can be used for validating the message
      *            header.
      */
-    public MessageHeader(final int command, final int arg0,
-        final int arg1, final int dataLength, final int dataChecksum,
-        final int magic)
+    public MessageHeader(int command, int arg0, int arg1, int dataLength, 
+        int dataChecksum, int magic)
     {
         this.command = command;
         this.arg0 = arg0;
@@ -94,12 +93,12 @@ public final class MessageHeader
      * @param bytes
      *            The ADB message header as bytes.
      */
-    public MessageHeader(final byte[] bytes)
+    public MessageHeader(byte[] bytes)
     {
         if (bytes.length != SIZE)
             throw new IllegalArgumentException("ADB message header must be "
                 + SIZE + " bytes large, not " + bytes.length + " bytes");
-        final ByteBuffer buffer = ByteBuffer.wrap(bytes).
+        ByteBuffer buffer = ByteBuffer.wrap(bytes).
             order(ByteOrder.LITTLE_ENDIAN);
         this.command = buffer.getInt();
         this.arg0 = buffer.getInt();
@@ -187,7 +186,7 @@ public final class MessageHeader
      */
     public byte[] getBytes()
     {
-        final ByteBuffer buffer = ByteBuffer.allocate(SIZE);
+        ByteBuffer buffer = ByteBuffer.allocate(SIZE);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putInt(this.command);
         buffer.putInt(this.arg0);
