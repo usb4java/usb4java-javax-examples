@@ -135,7 +135,8 @@ public class Adb
                 ((ed2.bmAttributes() & UsbConst.ENDPOINT_TYPE_BULK) == 0))
                 continue;
             
-            // Determine which endpoint is in and which is out
+            // Determine which endpoint is in and which is out. If both
+            // endpoints are in or out then ignore the interface
             byte a1 = ed1.bEndpointAddress();
             byte a2 = ed2.bEndpointAddress();
             byte in, out;
@@ -151,8 +152,7 @@ public class Adb
                 out = a1;
                 in = a2;
             }
-            else continue;
-                
+            else continue;                
             
             // Create ADB device and add it to the list
             AdbDevice adbDevice = new AdbDevice(iface, in, out);
