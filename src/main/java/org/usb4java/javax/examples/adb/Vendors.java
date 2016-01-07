@@ -171,7 +171,7 @@ public class Vendors
     };
 
     /**
-     * The effective list of ADB USB vendor IDs (Includiung the ones read from
+     * The effective list of ADB USB vendor IDs (Including the ones read from
      * the adb_usb.ini file.
      */
     public static short[] VENDOR_IDS = createVendorIds();
